@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A-Level Report Card System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --navy:#1B2A4A; --navy-deep:#101B33; --gold:#C9A227; --gold-soft:#E7D9A8;
+    --paper:#FAF7F0; --paper-dim:#F1ECE0; --ink:#2B2B2B; --crimson:#A6192E;
+    --green:#3F6B4E; --line:#DAD2BC;
+    --font-display:'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body:'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:'IBM Plex Mono','Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:var(--font-body); color:var(--ink); background:var(--paper-dim);}
+  ::selection{background:var(--gold-soft);}
+  input,select,textarea{font-family:var(--font-body); width:100%; padding:8px 10px; border-radius:7px; border:1px solid var(--line); font-size:13.5px; background:#fff; color:var(--ink);}
+  table{border-collapse:collapse; width:100%;}
+  th{text-align:left; padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:#6b6357; font-weight:700;}
+  td{padding:10px 14px; font-size:13.5px; vertical-align:top;}
+  button{font-family:var(--font-body); cursor:pointer;}
+  .app-root{display:flex; min-height:100vh;}
+  .sidebar{width:236px; background:var(--navy); color:#fff; display:flex; flex-direction:column; padding:24px 16px; position:sticky; top:0; height:100vh; flex-shrink:0;}
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 6px;}
+  .brand-badge{width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:13px; color:var(--gold); flex-shrink:0; overflow:hidden;}
+  .brand-name{font-family:var(--font-display); font-size:15px; line-height:1.15; font-weight:600;}
+  .role-badge{font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:.06em; margin-top:2px;}
+  .nav{display:flex; flex-direction:column; gap:2px;}
+  .nav-btn{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; border:none; background:transparent; color:rgba(255,255,255,0.82); font-size:14px; font-weight:500; text-align:left;}
+  .nav-btn.active{background:rgba(201,162,39,0.16); color:var(--gold); font-weight:600;}
+  .nav-footer{margin-top:auto; padding-top:16px; font-size:12px; color:rgba(255,255,255,0.5);}
+  .save-state{margin-top:6px; color:rgba(255,255,255,0.4);}
+  .save-state.saving{color:var(--gold);}
+  .logout-btn{margin-top:12px; width:100%; padding:8px 12px; border-radius:7px; border:1px solid rgba(255,255,255,0.25); background:transparent; color:rgba(255,255,255,0.75); font-size:12.5px; font-weight:600;}
+  main{flex:1; min-width:0; padding:28px 32px; max-width:1100px;}
+  .eyebrow{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:4px;}
+  .page-title{font-family:var(--font-display); font-size:28px; font-weight:700; color:var(--navy); margin:0;}
+  .page-header{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px;}
+  .card{background:#fff; border-radius:12px; padding:20px; border:1px solid var(--line); box-shadow:0 1px 3px rgba(27,42,74,0.05);}
+  .card-flush{padding:0; overflow:hidden;}
+  .section-title{font-family:var(--font-display); font-size:17px; font-weight:600; color:var(--navy); margin:0 0 14px;}
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:28px;}
+  .stat-card{text-align:left; background:#fff; border-radius:12px; padding:20px; border:1px solid var(--line);}
+  .stat-value{font-family:var(--font-display); font-size:32px; font-weight:700; color:var(--navy);}
+  .stat-label{font-size:13px; color:#6b6357; margin-top:4px;}
+  .btn-primary{display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:7px; border:none; background:var(--navy); color:#fff; font-size:13.5px; font-weight:600;}
+  .btn-secondary{display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:7px; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:13.5px; font-weight:600;}
+  .btn-quick{padding:9px 14px; border-radius:7px; border:1px solid var(--navy); background:transparent; color:var(--navy); font-size:13.5px; font-weight:600;}
+  .icon-btn{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; border:none; background:transparent; color:var(--navy); margin-left:4px;}
+  .icon-btn.danger{color:var(--crimson);}
+  .pill{display:inline-block; padding:2px 9px; border-radius:20px; font-size:11.5px; font-weight:700; background:var(--paper-dim); color:var(--navy);}
+  .pill.dark{background:var(--navy); color:#fff;}
+  .form-row{display:block; margin-bottom:10px;}
+  .form-label{font-size:12px; font-weight:600; color:#6b6357; margin-bottom:4px;}
+  .form-inline{display:flex; gap:14px; flex-wrap:wrap;}
+  .search-wrap{position:relative; max-width:320px; margin-bottom:16px;}
+  .search-wrap input{padding-left:32px;}
+  .search-icon{position:absolute; left:11px; top:11px; color:#9a9184;}
+  .subject-chip{padding:6px 11px; border-radius:20px; font-size:12.5px; border:1px solid var(--line); background:#fff; color:var(--ink); font-weight:500;}
+  .subject-chip.active{border-color:var(--navy); background:var(--navy); color:#fff;}
+  .modal-overlay{position:fixed; inset:0; background:rgba(16,27,51,0.45); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .modal{background:#fff; border-radius:12px; padding:24px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto;}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  .modal-close{border:none; background:transparent; color:#6b6357; font-size:18px; line-height:1;}
+  .empty-note{color:#6b6357; font-size:14px;}
+  .report-card{background:#fff; border:1px solid var(--line); border-radius:4px; padding:36px 40px; max-width:760px; box-shadow:0 2px 10px rgba(27,42,74,0.06);}
+  .report-head{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid var(--navy); padding-bottom:18px; margin-bottom:22px;}
+  .report-school{font-family:var(--font-display); font-size:24px; font-weight:700; color:var(--navy);}
+  .report-motto{font-size:12.5px; font-style:italic; color:#6b6357; margin-top:2px;}
+  .report-sub{font-size:12.5px; color:#6b6357; margin-top:8px; letter-spacing:.04em; text-transform:uppercase;}
+  .report-seal{width:62px; height:62px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-display); font-weight:700; color:var(--gold); font-size:20px; overflow:hidden;}
+  .report-meta{display:grid; grid-template-columns:1fr 1fr; gap:6px 24px; font-size:13.5px; margin-bottom:22px;}
+  .report-table{font-family:var(--font-mono); font-size:13px; margin-bottom:20px;}
+  .report-table th{border-bottom:1.5px solid var(--navy); font-family:var(--font-body);}
+  .report-table td{border-bottom:1px solid var(--line);}
+  .report-table td.name-cell{font-family:var(--font-body); font-weight:600;}
+  .report-totals{display:flex; gap:24px; margin-bottom:22px; font-size:13.5px;}
+  .sign-row{display:flex; justify-content:space-between; margin-top:30px;}
+  .sign-line{border-top:1px solid var(--ink); width:180px; padding-top:4px; font-size:12px;}
+  .loading-screen{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--paper);}
+  .loading-seal{width:64px; height:64px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; color:var(--navy); letter-spacing:1px;}
+  .login-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--paper-dim); padding:20px;}
+  .login-card{background:#fff; border-radius:16px; padding:40px 36px; width:100%; max-width:400px; border:1px solid var(--line); box-shadow:0 4px 24px rgba(27,42,74,0.08); text-align:center;}
+  .login-seal{width:56px; height:56px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; color:var(--navy); margin:0 auto 16px; overflow:hidden;}
+  .seal-img{width:100%; height:100%; object-fit:cover; display:block;}
+  .login-title{font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--navy); margin:0 0 6px;}
+  .login-sub{font-size:13.5px; color:#6b6357; margin-bottom:24px;}
+  .role-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px 16px; border-radius:10px; border:1.5px solid var(--navy); background:#fff; color:var(--navy); font-size:14.5px; font-weight:700; margin-bottom:10px;}
+  .role-btn.primary{background:var(--navy); color:#fff;}
+  .teacher-select-btn{display:block; width:100%; text-align:left; padding:11px 14px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:13.5px; font-weight:600; margin-bottom:8px;}
+  .login-error{color:var(--crimson); font-size:12.5px; margin-bottom:12px;}
+  .login-back{background:none; border:none; color:#6b6357; font-size:12.5px; margin-top:14px; text-decoration:underline;}
+  @media print{
+    .no-print{display:none !important;}
+    .report-card{box-shadow:none !important; margin:0 !important; border:none;}
+    body{background:#fff !important;}
+    main{padding:0 !important; max-width:none !important;}
+  }
+  @media (max-width:720px){
+    .app-root{flex-direction:column;}
+    .sidebar{width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; padding:12px;}
+    .nav{flex-direction:row;}
+    .brand,.nav-footer{display:none;}
+    main{padding:18px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="loading-screen"><div class="loading-seal">UG</div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ---------------------------------------------------------------------
+   Uganda A-Level Report Card System — vanilla JS + Firebase
+   Now with an Admin portal and a Teachers portal.
+
+   NOTE ON SECURITY / SETUP: data is stored in Cloud Firestore and
+   Admin/Teacher accounts use real Firebase Authentication (email +
+   password). For this to work in your own Firebase project:
+     1. Authentication → Sign-in method → enable "Email/Password"
+        AND "Anonymous" (anonymous is used so the login screen and
+        the Parent Portal, which has no account, can read data).
+     2. Firestore Database → create a database.
+     3. Firestore → Rules → restrict writes to signed-in non-anonymous
+        users and allow reads to anyone signed in (anonymous included).
+        Example:
+          rules_version = '2';
+          service cloud.firestore {
+            match /databases/{database}/documents {
+              match /schoolData/main {
+                allow read: if request.auth != null;
+                allow write: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+              }
+            }
+          }
+   Parent Portal logins still use the school-issued admission number
+   + PIN (parents don't get their own Firebase account).
+--------------------------------------------------------------------- */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC1kOC22nS_J5E-76j0W0NsmI87dFymFEU",
+  authDomain: "alevel-report.firebaseapp.com",
+  projectId: "alevel-report",
+  storageBucket: "alevel-report.firebasestorage.app",
+  messagingSenderId: "794739539381",
+  appId: "1:794739539381:web:f9b549b954a8558eb92dfc",
+  measurementId: "G-8QGZLMC5G1"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const db = firebase.firestore();
+const DATA_DOC = db.collection("schoolData").doc("main");
+// Secondary app instance: lets an admin create a teacher's Firebase
+// account without being signed out of their own admin session.
+const fbSecondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+const fbSecondaryAuth = fbSecondaryApp.auth();
+
+const CLASSES = ["S5", "S6"];
+const TERMS = ["Term 1", "Term 2", "Term 3"];
+
+const DEFAULT_SUBJECTS = [
+  { id: "gp", name: "General Paper", code: "GP" },
+  { id: "sicti", name: "Sub-ICT", code: "S-ICT" },
+  { id: "math", name: "Mathematics", code: "MTC" },
+  { id: "phy", name: "Physics", code: "PHY" },
+  { id: "chem", name: "Chemistry", code: "CHM" },
+  { id: "bio", name: "Biology", code: "BIO" },
+  { id: "econ", name: "Economics", code: "ECN" },
+  { id: "geo", name: "Geography", code: "GEO" },
+  { id: "hist", name: "History", code: "HIST" },
+  { id: "lit", name: "Literature in English", code: "LIT" },
+];
+
+const DEFAULT_SETTINGS = {
+  schoolName: "Your School Name",
+  schoolMotto: "",
+  currentTerm: "Term 1",
+  currentYear: String(new Date().getFullYear()),
+  adminUid: "",
+  adminEmail: "",
+  lastPromotionDate: "",
+  logoDataUrl: "",
+  gradeScale: [
+    { grade: "A", min: 80, points: 6 },
+    { grade: "B", min: 70, points: 5 },
+    { grade: "C", min: 60, points: 4 },
+    { grade: "D", min: 50, points: 3 },
+    { grade: "E", min: 40, points: 2 },
+    { grade: "F", min: 0, points: 0 },
+  ],
+};
+
+function emptyData(){
+  return { students: [], subjects: DEFAULT_SUBJECTS, teachers: [], grades: {}, remarks: {}, settings: { ...DEFAULT_SETTINGS } };
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function gradeKey(sid, subId, term, year){ return `${sid}|${subId}|${term}|${year}`; }
+function remarkKey(sid, term, year){ return `${sid}|${term}|${year}`; }
+function isActiveStudent(s){ return s.status !== "graduated"; }
+function computeGrade(score, scale){
+  if (score === "" || score === undefined || score === null || isNaN(score)) return null;
+  const s = Number(score);
+  const sorted = [...scale].sort((a,b)=>b.min-a.min);
+  for (const band of sorted) if (s >= band.min) return band;
+  return sorted[sorted.length-1];
+}
+function esc(str){
+  return String(str ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function sealInner(initials){
+  const logo = DATA && DATA.settings && DATA.settings.logoDataUrl;
+  return logo ? `<img class="seal-img" src="${logo}" alt="School logo" />` : esc(initials);
+}
+function resizeImageToDataUrl(file, maxDim, quality){
+  maxDim = maxDim || 240; quality = quality || 0.82;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Could not load image"));
+      img.onload = () => {
+        let width = img.naturalWidth, height = img.naturalHeight;
+        if (width > maxDim || height > maxDim){
+          if (width >= height){ height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+let DATA = null;
+let UI = { tab: "dashboard", saveState: "idle", studentQuery: "", studentStatusFilter: "active", modal: null, editingStudent: null,
+  editingTeacher: null, gradeFilter: null, reportFilter: null };
+
+// Admin/Teacher sessions now persist via Firebase Auth (they'll stay
+// signed in across refreshes). Parent sessions are app-level only and
+// reset on refresh, same as before.
+let SESSION = { role: null, teacherId: null, studentId: null, step: "choose", selectedTeacherId: null, selectedStudentId: null, error: "" };
+
+const ADMIN_NAV = [["dashboard","Dashboard"],["students","Students"],["subjects","Subjects"],["teachers","Teachers"],["grades","Grade Entry"],["reports","Report Cards"],["settings","Settings"]];
+const TEACHER_NAV = [["dashboard","Dashboard"],["grades","Grade Entry"],["reports","Report Cards"]];
+const PARENT_NAV = [["dashboard","Dashboard"],["reports","Report Cards"]];
+
+async function loadData(){
+  try{
+    const snap = await DATA_DOC.get();
+    if (snap.exists){
+      const parsed = snap.data() || {};
+      DATA = { ...emptyData(), ...parsed, settings: { ...DEFAULT_SETTINGS, ...(parsed.settings||{}) }, teachers: parsed.teachers || [] };
+    } else {
+      DATA = emptyData();
+      await DATA_DOC.set(DATA);
+    }
+  } catch(e){
+    console.error("Load failed", e);
+    DATA = emptyData();
+  }
+}
+
+async function persist(){
+  UI.saveState = "saving";
+  updateSaveIndicator();
+  try{
+    await DATA_DOC.set(DATA);
+    UI.saveState = "saved";
+    updateSaveIndicator();
+    setTimeout(()=>{ UI.saveState="idle"; updateSaveIndicator(); }, 1200);
+  } catch(e){
+    UI.saveState = "idle";
+    updateSaveIndicator();
+    console.error("Save failed", e);
+    alert("Could not save changes — check your connection and try again.");
+  }
+}
+
+// Drives startup and every sign-in/sign-out. We keep an anonymous
+// Firebase session active whenever nobody is logged in, purely so
+// Firestore reads work for the login screen and the Parent Portal.
+let authReady = false;
+fbAuth.onAuthStateChanged(async (user) => {
+  if (!user){
+    try{ await fbAuth.signInAnonymously(); } catch(err){ console.error("Anonymous sign-in failed", err); }
+    return; // this handler will fire again once the anonymous user is set
+  }
+
+  if (!authReady){
+    authReady = true;
+    await loadData();
+    UI.gradeFilter = { klass: CLASSES[0], subjectId: DATA.subjects[0]?.id || "", term: DATA.settings.currentTerm, year: DATA.settings.currentYear };
+    UI.reportFilter = { studentId: DATA.students[0]?.id || "", term: DATA.settings.currentTerm, year: DATA.settings.currentYear };
+  }
+
+  if (user.isAnonymous){
+    if (SESSION.role){ SESSION = { role:null, teacherId:null, studentId:null, step:"choose", selectedTeacherId:null, selectedStudentId:null, error:"" }; }
+  } else if (DATA.settings.adminUid === user.uid){
+    SESSION = { role:"admin", teacherId:null, studentId:null, step:"done", selectedTeacherId:null, selectedStudentId:null, error:"" };
+    if (!currentNav().some(n=>n[0]===UI.tab)) UI.tab = "dashboard";
+  } else {
+    const t = DATA.teachers.find(t=>t.uid===user.uid);
+    if (t){
+      SESSION = { role:"teacher", teacherId:t.id, studentId:null, step:"done", selectedTeacherId:null, selectedStudentId:null, error:"" };
+      if (!currentNav().some(n=>n[0]===UI.tab)) UI.tab = "grades";
+    } else {
+      // A signed-in Firebase user we don't recognize (e.g. a removed
+      // teacher account). Sign them out rather than let them in.
+      fbAuth.signOut();
+      return;
+    }
+  }
+  render();
+});
+function updateSaveIndicator(){
+  const el = document.getElementById("save-indicator");
+  if (!el) return;
+  el.textContent = UI.saveState === "saving" ? "Saving…" : UI.saveState === "saved" ? "Saved ✓" : "All changes saved";
+  el.className = "save-state" + (UI.saveState === "saving" ? " saving" : "");
+}
+
+function currentNav(){
+  if (SESSION.role === "admin") return ADMIN_NAV;
+  if (SESSION.role === "teacher") return TEACHER_NAV;
+  return PARENT_NAV;
+}
+function currentTeacher(){ return DATA.teachers.find(t=>t.id===SESSION.teacherId) || null; }
+function currentParentStudent(){ return DATA.students.find(s=>s.id===SESSION.studentId) || null; }
+
+function setTab(tab){
+  const allowed = currentNav().map(n=>n[0]);
+  if (!allowed.includes(tab)) return;
+  UI.tab = tab;
+  render();
+}
+
+/* ----------------------------- Import / Export ----------------------------- */
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function exportStudentsToExcel(){
+  const rows = DATA.students.map(s=>({
+    "Name": s.name,
+    "Admission No": s.admNo || "",
+    "Class": s.klass,
+    "Stream": s.stream || "",
+    "Guardian Contact": s.guardianContact || "",
+    "Subjects": (s.subjectIds||[]).map(id => DATA.subjects.find(sub=>sub.id===id)?.code).filter(Boolean).join(", "),
+    "Status": isActiveStudent(s) ? "Active" : "Graduated",
+    "Graduated Year": s.graduatedYear || ""
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Name":"", "Admission No":"", "Class":"", "Stream":"", "Guardian Contact":"", "Subjects":"", "Status":"", "Graduated Year":"" }]);
+  ws["!cols"] = [{wch:24},{wch:16},{wch:8},{wch:12},{wch:20},{wch:30},{wch:12},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Students");
+  XLSX.writeFile(wb, `students-${DATA.settings.currentYear||""}.xlsx`);
+}
+
+function importStudentsFromExcel(file){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(e.target.result, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      let added = 0, updated = 0, skipped = 0;
+      rows.forEach(row=>{
+        const name = String(row["Name"] || "").trim();
+        if (!name){ skipped++; return; }
+        const admNo = String(row["Admission No"] || "").trim();
+        const klassRaw = String(row["Class"] || "").trim();
+        const klass = CLASSES.includes(klassRaw) ? klassRaw : CLASSES[0];
+        const stream = String(row["Stream"] || "").trim();
+        const guardianContact = String(row["Guardian Contact"] || "").trim();
+        const subjectCodes = String(row["Subjects"] || "").split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+        const subjectIds = DATA.subjects.filter(sub => subjectCodes.includes(sub.code.toUpperCase())).map(sub=>sub.id);
+        const hasStatusCol = Object.prototype.hasOwnProperty.call(row, "Status");
+        const statusRaw = hasStatusCol ? String(row["Status"] || "").trim().toLowerCase() : "";
+        const existing = admNo
+          ? DATA.students.find(s => s.admNo && s.admNo === admNo)
+          : DATA.students.find(s => s.name.toLowerCase() === name.toLowerCase());
+        if (existing){
+          existing.name = name;
+          existing.admNo = admNo || existing.admNo;
+          existing.klass = klass;
+          existing.stream = stream;
+          existing.guardianContact = guardianContact;
+          if (subjectCodes.length) existing.subjectIds = subjectIds;
+          if (hasStatusCol){
+            existing.status = statusRaw === "graduated" ? "graduated" : "active";
+            existing.graduatedYear = statusRaw === "graduated" ? (String(row["Graduated Year"]||"").trim() || existing.graduatedYear || "") : "";
+          }
+          updated++;
+        } else {
+          const status = statusRaw === "graduated" ? "graduated" : "active";
+          const graduatedYear = status === "graduated" ? String(row["Graduated Year"]||"").trim() : "";
+          DATA.students.push({ id: uid(), name, admNo, klass, stream, guardianContact, subjectIds, status, graduatedYear });
+          added++;
+        }
+      });
+      persist(); render();
+      alert(`Import complete: ${added} added, ${updated} updated${skipped ? `, ${skipped} skipped (no name)` : ""}.`);
+    } catch(err){
+      console.error(err);
+      alert("Could not read that file. Make sure it's a valid Excel file with columns like Name, Admission No, Class, Stream, Guardian Contact, Subjects (e.g. an export from this system).");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function exportGradesToExcel(){
+  const f = UI.gradeFilter;
+  const subject = DATA.subjects.find(s=>s.id===f.subjectId);
+  const roster = DATA.students.filter(s => s.klass===f.klass && isActiveStudent(s) && (s.subjectIds||[]).includes(f.subjectId));
+  const rows = roster.map(s=>{
+    const g = DATA.grades[gradeKey(s.id, f.subjectId, f.term, f.year)] || {};
+    return { "Admission No": s.admNo || "", "Name": s.name, "Score (%)": g.score ?? "", "Comment": g.comment ?? "" };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "Admission No":"", "Name":"", "Score (%)":"", "Comment":"" }]);
+  ws["!cols"] = [{wch:16},{wch:24},{wch:12},{wch:34}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `${f.klass}-${subject?.code||"subject"}`.slice(0,31));
+  const filename = `grades-${f.klass}-${subject?.code||"subject"}-${f.term}-${f.year}.xlsx`.replace(/\s+/g,"_");
+  XLSX.writeFile(wb, filename);
+}
+
+function importGradesFromExcel(file){
+  const f = UI.gradeFilter;
+  const roster = DATA.students.filter(s => s.klass===f.klass && isActiveStudent(s) && (s.subjectIds||[]).includes(f.subjectId));
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(e.target.result, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      let updated = 0, skipped = 0;
+      rows.forEach(row=>{
+        const admNo = String(row["Admission No"] || "").trim();
+        const name = String(row["Name"] || "").trim();
+        const student = roster.find(s => (admNo && s.admNo === admNo) || (!admNo && name && s.name.toLowerCase() === name.toLowerCase()));
+        if (!student){ skipped++; return; }
+        const score = String(row["Score (%)"] ?? "").trim();
+        const comment = String(row["Comment"] ?? "").trim();
+        DATA.grades[gradeKey(student.id, f.subjectId, f.term, f.year)] = { score, comment };
+        updated++;
+      });
+      persist(); render();
+      alert(`Import complete: ${updated} score(s) updated${skipped ? `, ${skipped} row(s) skipped (student not in this roster)` : ""}.`);
+    } catch(err){
+      console.error(err);
+      alert("Could not read that file. Make sure it's a valid Excel file with columns Admission No / Name, Score (%), Comment — e.g. an export from this system.");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function exportReportAs(format){
+  const node = document.querySelector(".report-card");
+  if (!node || typeof html2canvas === "undefined") return;
+  const btn = document.querySelector(`[data-action="export-report-${format}"]`);
+  const originalLabel = btn ? btn.textContent : "";
+  if (btn){ btn.textContent = "Preparing…"; btn.disabled = true; }
+  try{
+    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+    const f = UI.reportFilter;
+    const student = DATA.students.find(s=>s.id===f.studentId);
+    const base = `report-${(student?.name||"student")}-${f.term}-${f.year}`.replace(/[^a-z0-9]+/gi,"_");
+    if (format === "jpg"){
+      canvas.toBlob(blob => { if (blob) downloadBlob(blob, `${base}.jpg`); }, "image/jpeg", 0.95);
+    } else if (format === "pdf"){
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 30;
+      const maxW = pageW - margin*2;
+      const maxH = pageH - margin*2;
+      let imgW = maxW;
+      let imgH = (canvas.height * imgW) / canvas.width;
+      if (imgH > maxH){ imgH = maxH; imgW = (canvas.width * imgH) / canvas.height; }
+      const x = (pageW - imgW) / 2;
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imgData, "JPEG", x, margin, imgW, imgH);
+      pdf.save(`${base}.pdf`);
+    }
+  } catch(err){
+    console.error(err);
+    alert("Could not export the report card. Please try again.");
+  } finally {
+    if (btn){ btn.textContent = originalLabel; btn.disabled = false; }
+  }
+}
+
+/* ----------------------------- Render root ----------------------------- */
+
+function render(){
+  const app = document.getElementById("app");
+  if (!SESSION.role){
+    app.innerHTML = renderLogin();
+    attachGlobalHandlers();
+    return;
+  }
+  app.innerHTML = `
+    <div class="app-root">
+      ${renderSidebar()}
+      <main>${renderTab()}</main>
+    </div>
+    ${UI.modal ? renderModal() : ""}
+  `;
+  attachGlobalHandlers();
+}
+
+/* ----------------------------- Login flow ----------------------------- */
+
+function renderLogin(){
+  const schoolName = DATA.settings.schoolName || "Your School";
+  const initials = schoolName.trim().slice(0,2).toUpperCase();
+
+  if (SESSION.step === "choose"){
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">${esc(schoolName)}</h1>
+        <p class="login-sub">Advanced Level Report Card System</p>
+        <button class="role-btn primary" data-action="choose-role" data-role="admin">Admin Portal</button>
+        <button class="role-btn" data-action="choose-role" data-role="teacher">Teacher Portal</button>
+        <button class="role-btn" data-action="choose-role" data-role="parent">Parent Portal</button>
+      </div></div>`;
+  }
+
+  if (SESSION.step === "admin-login"){
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">Admin Portal</h1>
+        <p class="login-sub">Sign in with your admin email and password.</p>
+        ${SESSION.error ? `<div class="login-error">${esc(SESSION.error)}</div>` : ""}
+        <input id="admin-email-input" type="email" placeholder="Email" style="text-align:center;margin-bottom:10px;" />
+        <input id="pin-input" type="password" placeholder="Password" style="text-align:center;margin-bottom:10px;" />
+        <button class="role-btn primary" data-action="submit-admin-login">Sign in</button>
+        <button class="login-back" data-action="forgot-password" data-field="admin-email-input">Forgot password?</button>
+        <button class="login-back" data-action="back-to-role-choice">← Back</button>
+      </div></div>`;
+  }
+
+  if (SESSION.step === "admin-setup"){
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">Set Up the Admin Account</h1>
+        <p class="login-sub">Create an email and password to protect the Admin Portal. You'll use these to log in from now on.</p>
+        ${SESSION.error ? `<div class="login-error">${esc(SESSION.error)}</div>` : ""}
+        <input id="setup-email" type="email" placeholder="Admin email" style="text-align:center;margin-bottom:10px;" />
+        <input id="setup-pass1" type="password" placeholder="Create password (min 6 characters)" style="text-align:center;margin-bottom:10px;" />
+        <input id="setup-pass2" type="password" placeholder="Confirm password" style="text-align:center;margin-bottom:10px;" />
+        <button class="role-btn primary" data-action="submit-admin-setup">Create account & continue</button>
+        <button class="login-back" data-action="back-to-role-choice">← Back</button>
+      </div></div>`;
+  }
+
+  if (SESSION.step === "teacher-login"){
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">Teacher Portal</h1>
+        <p class="login-sub">Sign in with the email and password your admin set up for you.</p>
+        ${SESSION.error ? `<div class="login-error">${esc(SESSION.error)}</div>` : ""}
+        <input id="teacher-email-input" type="email" placeholder="Email" style="text-align:center;margin-bottom:10px;" />
+        <input id="pin-input" type="password" placeholder="Password" style="text-align:center;margin-bottom:10px;" />
+        <button class="role-btn primary" data-action="submit-teacher-login">Sign in</button>
+        <button class="login-back" data-action="forgot-password" data-field="teacher-email-input">Forgot password?</button>
+        <button class="login-back" data-action="back-to-role-choice">← Back</button>
+      </div></div>`;
+  }
+
+  if (SESSION.step === "parent-lookup"){
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">Parent Portal</h1>
+        <p class="login-sub">Enter your child's admission number to continue.</p>
+        ${SESSION.error ? `<div class="login-error">${esc(SESSION.error)}</div>` : ""}
+        <input id="parent-admno-input" type="text" placeholder="Admission number" style="text-align:center;margin-bottom:10px;" />
+        <button class="role-btn primary" data-action="submit-parent-lookup">Continue</button>
+        <button class="login-back" data-action="back-to-role-choice">← Back</button>
+      </div></div>`;
+  }
+
+  if (SESSION.step === "parent-pin"){
+    const s = DATA.students.find(s=>s.id===SESSION.selectedStudentId);
+    return `
+      <div class="login-screen"><div class="login-card">
+        <div class="login-seal">${sealInner(initials)}</div>
+        <h1 class="login-title">Welcome, parent of ${esc(s?.name||"")}</h1>
+        <p class="login-sub">Enter the PIN provided by the school to continue.</p>
+        ${SESSION.error ? `<div class="login-error">${esc(SESSION.error)}</div>` : ""}
+        <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN" style="text-align:center;letter-spacing:3px;margin-bottom:10px;" />
+        <button class="role-btn primary" data-action="submit-parent-pin">Continue</button>
+        <button class="login-back" data-action="back-to-role-choice">← Back</button>
+      </div></div>`;
+  }
+
+  return "";
+}
+
+function logout(){
+  if (SESSION.role === "admin" || SESSION.role === "teacher"){
+    fbAuth.signOut(); // triggers onAuthStateChanged, which resets SESSION and re-renders
+    return;
+  }
+  SESSION = { role: null, teacherId: null, studentId: null, step: "choose", selectedTeacherId: null, selectedStudentId: null, error: "" };
+  UI.tab = "dashboard";
+  render();
+}
+
+/* ----------------------------- Sidebar / shell ----------------------------- */
+
+function renderSidebar(){
+  const initials = (DATA.settings.schoolName||"S").trim().slice(0,2).toUpperCase();
+  const who = SESSION.role === "admin" ? "Admin"
+    : SESSION.role === "teacher" ? (currentTeacher()?.name || "Teacher")
+    : (currentParentStudent() ? `Parent of ${currentParentStudent().name}` : "Parent");
+  const roleLabel = SESSION.role === "admin" ? "Admin portal" : SESSION.role === "teacher" ? "Teacher portal" : "Parent portal";
+  return `
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <div class="brand-badge">${sealInner(initials)}</div>
+      <div>
+        <div class="brand-name">${esc(who)}</div>
+        <div class="role-badge">${roleLabel}</div>
+      </div>
+    </div>
+    <nav class="nav">
+      ${currentNav().map(([key,label])=>`
+        <button class="nav-btn ${UI.tab===key?"active":""}" data-action="set-tab" data-tab="${key}">${esc(label)}</button>
+      `).join("")}
+    </nav>
+    <div class="nav-footer">
+      ${esc(DATA.settings.currentTerm)} · ${esc(DATA.settings.currentYear)}
+      <div class="save-state" id="save-indicator">All changes saved</div>
+      <button class="logout-btn" data-action="logout">Log out</button>
+    </div>
+  </aside>`;
+}
+
+function pageHeader(eyebrow, title, actionHtml){
+  return `
+  <div class="page-header">
+    <div>
+      <div class="eyebrow">${esc(eyebrow)}</div>
+      <h1 class="page-title">${esc(title)}</h1>
+    </div>
+    ${actionHtml || ""}
+  </div>`;
+}
+
+function renderTab(){
+  const allowed = currentNav().map(n=>n[0]);
+  const tab = allowed.includes(UI.tab) ? UI.tab : allowed[0];
+  switch(tab){
+    case "students": return renderStudents();
+    case "subjects": return renderSubjects();
+    case "teachers": return renderTeachers();
+    case "grades": return renderGrades();
+    case "reports": return renderReports();
+    case "settings": return renderSettings();
+    default: return renderDashboard();
+  }
+}
+
+/* ----------------------------- Dashboard ----------------------------- */
+
+function renderDashboard(){
+  const { students, subjects, grades, settings } = DATA;
+
+  if (SESSION.role === "parent"){
+    const student = currentParentStudent();
+    if (!student){
+      return pageHeader("Overview","Dashboard") + `<div class="card empty-note">We couldn't find your child's record. Please contact the school office.</div>`;
+    }
+    const term = settings.currentTerm, year = settings.currentYear;
+    const rows = (student.subjectIds||[]).map(sid=>{
+      const subject = subjects.find(s=>s.id===sid);
+      if (!subject) return null;
+      const g = grades[gradeKey(student.id, sid, term, year)];
+      const gr = g ? computeGrade(g.score, settings.gradeScale) : null;
+      return { subject, score: g?.score, grade: gr };
+    }).filter(Boolean);
+    const scored = rows.filter(r=>r.grade);
+    const avgScore = scored.length ? (scored.reduce((sum,r)=>sum+Number(r.score),0)/scored.length).toFixed(1) : null;
+    return `
+      ${pageHeader("Overview","Dashboard")}
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:18px;">
+        ${student.photoDataUrl ? `<div style="width:64px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--line);flex-shrink:0;">
+            <img src="${student.photoDataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="${esc(student.name)}" />
+          </div>` : ""}
+        <div class="stat-grid" style="flex:1;margin-bottom:0;">
+          <div class="stat-card"><div class="stat-value">${esc(student.klass)}</div><div class="stat-label">${esc(student.name)}${student.stream?` — ${esc(student.stream)}`:""}</div></div>
+          <div class="stat-card"><div class="stat-value">${rows.length}</div><div class="stat-label">Subjects this term</div></div>
+          <div class="stat-card"><div class="stat-value">${avgScore ?? "—"}${avgScore?"%":""}</div><div class="stat-label">Average score (${esc(term)})</div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:18px;">
+        <h3 class="section-title">${esc(term)}, ${esc(year)} — at a glance</h3>
+        ${rows.length===0 ? `<p class="empty-note">No scores recorded yet for this term.</p>` : `
+          <table>
+            <thead><tr><th>Subject</th><th>Score</th><th>Grade</th></tr></thead>
+            <tbody>
+              ${rows.map(r=>`
+                <tr>
+                  <td style="font-weight:600;">${esc(r.subject.name)}</td>
+                  <td>${r.score!==undefined && r.score!=="" ? esc(r.score) : "—"}</td>
+                  <td>${r.grade ? `<span class="pill dark">${esc(r.grade.grade)}</span>` : "—"}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>`}
+      </div>
+      <button class="btn-quick" data-action="set-tab" data-tab="reports">View full report card</button>`;
+  }
+
+  if (SESSION.role === "teacher"){
+    const t = currentTeacher();
+    const mySubjects = subjects.filter(s => (t?.subjectIds||[]).includes(s.id));
+    const myStudents = students.filter(s => isActiveStudent(s) && (s.subjectIds||[]).some(id => (t?.subjectIds||[]).includes(id)));
+    const gradesEntered = Object.keys(grades).filter(k=>{
+      const [,subId,term,year] = k.split("|");
+      return (t?.subjectIds||[]).includes(subId) && term===settings.currentTerm && year===settings.currentYear;
+    }).length;
+    return `
+      ${pageHeader("Overview","Dashboard")}
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value">${mySubjects.length}</div><div class="stat-label">Your subjects</div></div>
+        <div class="stat-card"><div class="stat-value">${myStudents.length}</div><div class="stat-label">Students you teach</div></div>
+        <div class="stat-card"><div class="stat-value">${gradesEntered}</div><div class="stat-label">Scores recorded (${esc(settings.currentTerm)})</div></div>
+      </div>
+      <div class="card">
+        <h3 class="section-title">Your subjects</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${mySubjects.length===0 ? `<p class="empty-note">No subjects assigned to you yet. Ask your admin to assign some from the Teachers tab.</p>` :
+            mySubjects.map(s=>`<span class="pill">${esc(s.code)}</span>`).join("")}
+        </div>
+      </div>`;
+  }
+
+  const gradesEntered = Object.keys(grades).filter(k => k.includes(`|${settings.currentTerm}|${settings.currentYear}`)).length;
+  const activeStudents = students.filter(isActiveStudent);
+  const byClass = CLASSES.map(c => ({ c, n: activeStudents.filter(s=>s.klass===c).length }));
+
+  return `
+    ${pageHeader("Overview","Dashboard")}
+    <div class="stat-grid">
+      <button class="stat-card" data-action="set-tab" data-tab="students"><div class="stat-value">${activeStudents.length}</div><div class="stat-label">Active students</div></button>
+      <button class="stat-card" data-action="set-tab" data-tab="subjects"><div class="stat-value">${subjects.length}</div><div class="stat-label">Subjects offered</div></button>
+      <button class="stat-card" data-action="set-tab" data-tab="teachers"><div class="stat-value">${DATA.teachers.length}</div><div class="stat-label">Teacher accounts</div></button>
+      <button class="stat-card" data-action="set-tab" data-tab="grades"><div class="stat-value">${gradesEntered}</div><div class="stat-label">Scores recorded (${esc(settings.currentTerm)})</div></button>
+      ${byClass.map(({c,n})=>`
+        <button class="stat-card" data-action="set-tab" data-tab="students"><div class="stat-value">${n}</div><div class="stat-label">${esc(c)} students</div></button>
+      `).join("")}
+    </div>
+    <div class="card">
+      <h3 class="section-title">Quick actions</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-quick" data-action="set-tab" data-tab="students">Add a student</button>
+        <button class="btn-quick" data-action="set-tab" data-tab="teachers">Add a teacher</button>
+        <button class="btn-quick" data-action="set-tab" data-tab="grades">Enter grades</button>
+        <button class="btn-quick" data-action="set-tab" data-tab="reports">Generate a report card</button>
+        <button class="btn-quick" data-action="set-tab" data-tab="settings">Edit grading scale</button>
+      </div>
+    </div>`;
+}
+
+/* ----------------------------- Students (admin only) ----------------------------- */
+
+function renderStudents(){
+  const q = UI.studentQuery.toLowerCase();
+  const statusFilter = UI.studentStatusFilter || "active";
+  const byStatus = DATA.students.filter(s => {
+    if (statusFilter === "active") return isActiveStudent(s);
+    if (statusFilter === "graduated") return !isActiveStudent(s);
+    return true;
+  });
+  const filtered = byStatus.filter(s => (s.name+" "+(s.admNo||"")).toLowerCase().includes(q));
+  const action = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" data-action="export-students-excel">⬇ Export Excel</button>
+      <button class="btn-secondary" data-action="import-students-excel">⬆ Import Excel</button>
+      <input type="file" id="import-students-input" accept=".xlsx,.xls,.csv" style="display:none;" />
+      <button class="btn-primary" data-action="new-student">+ Add student</button>
+    </div>`;
+  return `
+    ${pageHeader("Records","Students", action)}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+      <div class="search-wrap" style="margin-bottom:0;">
+        <span class="search-icon">⌕</span>
+        <input id="student-search" placeholder="Search by name or admission no." value="${esc(UI.studentQuery)}" />
+      </div>
+      <select id="student-status-filter" style="max-width:170px;">
+        <option value="active" ${statusFilter==="active"?"selected":""}>Active students</option>
+        <option value="graduated" ${statusFilter==="graduated"?"selected":""}>Graduated</option>
+        <option value="all" ${statusFilter==="all"?"selected":""}>All students</option>
+      </select>
+    </div>
+    <div class="card card-flush">
+      <table>
+        <thead><tr><th></th><th>Name</th><th>Adm No.</th><th>Class</th><th>Stream</th><th>Subjects</th><th>Status</th><th>Parent Access</th><th></th></tr></thead>
+        <tbody>
+          ${filtered.length===0 ? `<tr><td colspan="9" style="text-align:center;color:#9a9184;padding:28px;">
+            ${DATA.students.length===0 ? "No students yet. Add your first student to get started." : "No students match this filter."}
+          </td></tr>` : filtered.map(s=>`
+            <tr>
+              <td style="width:36px;">${s.photoDataUrl
+                ? `<img src="${s.photoDataUrl}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;display:block;" alt="" />`
+                : `<div style="width:32px;height:32px;border-radius:6px;background:var(--paper-dim);border:1px solid var(--line);"></div>`}</td>
+              <td style="font-weight:600;">${esc(s.name)}</td>
+              <td>${esc(s.admNo)||"—"}</td>
+              <td>${esc(s.klass)}</td>
+              <td>${esc(s.stream)||"—"}</td>
+              <td>${(s.subjectIds||[]).length} subjects</td>
+              <td>${isActiveStudent(s) ? `<span class="pill dark">Active</span>` : `<span class="pill">Graduated${s.graduatedYear?` '${String(s.graduatedYear).slice(-2)}`:""}</span>`}</td>
+              <td>${s.parentPin ? "PIN set" : "No PIN"}</td>
+              <td style="text-align:right;white-space:nowrap;">
+                <button class="icon-btn" data-action="edit-student" data-id="${s.id}">✎</button>
+                <button class="icon-btn danger" data-action="delete-student" data-id="${s.id}">🗑</button>
+              </td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function studentModalHtml(student){
+  return `
+    <div class="form-row" style="display:flex;gap:14px;align-items:center;">
+      <div style="width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--paper-dim);border:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${student.photoDataUrl ? `<img src="${student.photoDataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="Passport photo" />` : `<span style="font-size:11px;color:#9a9184;">No photo</span>`}
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:6px;">Passport photo</div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn-secondary" data-action="upload-student-photo">Upload</button>
+          ${student.photoDataUrl ? `<button type="button" class="btn-secondary" data-action="remove-student-photo">Remove</button>` : ""}
+        </div>
+        <input type="file" id="student-photo-input" accept="image/*" style="display:none;" />
+      </div>
+    </div>
+    <div class="form-row"><div class="form-label">Full name</div>
+      <input id="f-name" value="${esc(student.name)}" placeholder="e.g. Nakato Sarah" /></div>
+    <div class="form-row"><div class="form-label">Admission number</div>
+      <input id="f-adm" value="${esc(student.admNo)}" /></div>
+    <div class="form-inline">
+      <div class="form-row" style="flex:1;"><div class="form-label">Class</div>
+        <select id="f-klass">${CLASSES.map(c=>`<option ${c===student.klass?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div class="form-row" style="flex:1;"><div class="form-label">Stream (optional)</div>
+        <input id="f-stream" value="${esc(student.stream)}" placeholder="e.g. East" /></div>
+    </div>
+    <div class="form-row"><div class="form-label">Guardian contact (optional)</div>
+      <input id="f-guardian" value="${esc(student.guardianContact)}" /></div>
+    <div class="form-row"><div class="form-label">Parent portal PIN (optional)</div>
+      <input id="f-parentpin" value="${esc(student.parentPin)}" maxlength="8" placeholder="Leave blank for no PIN" /></div>
+    <p style="font-size:12px;color:#6b6357;margin:-6px 0 12px;">Parents log in from the Parent Portal using this student's admission number, plus this PIN if one is set.</p>
+    <div class="form-row"><div class="form-label">Subject combination</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="f-subjects">
+        ${DATA.subjects.map(sub=>{
+          const active = (student.subjectIds||[]).includes(sub.id);
+          return `<button type="button" class="subject-chip ${active?"active":""}" data-action="toggle-subject" data-sid="${sub.id}">${esc(sub.code)}</button>`;
+        }).join("")}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+      <button class="btn-secondary" data-action="close-modal">Cancel</button>
+      <button class="btn-primary" data-action="save-student">Save student</button>
+    </div>`;
+}
+
+/* ----------------------------- Subjects (admin only) ----------------------------- */
+
+function renderSubjects(){
+  return `
+    ${pageHeader("Curriculum","Subjects")}
+    <div class="card" style="margin-bottom:18px;">
+      <h3 class="section-title">Add a subject</h3>
+      <div class="form-inline" style="align-items:flex-end;">
+        <div class="form-row" style="flex:2;min-width:200px;"><div class="form-label">Subject name</div>
+          <input id="new-subject-name" placeholder="e.g. Entrepreneurship" /></div>
+        <div class="form-row" style="flex:1;min-width:100px;"><div class="form-label">Code</div>
+          <input id="new-subject-code" placeholder="e.g. ENT" /></div>
+        <button class="btn-primary" data-action="add-subject" style="margin-bottom:10px;">+ Add</button>
+      </div>
+    </div>
+    <div class="card card-flush">
+      <table>
+        <thead><tr><th>Subject</th><th>Code</th><th></th></tr></thead>
+        <tbody>
+          ${DATA.subjects.map(s=>`
+            <tr>
+              <td style="font-weight:600;">${esc(s.name)}</td>
+              <td><span class="pill">${esc(s.code)}</span></td>
+              <td style="text-align:right;"><button class="icon-btn danger" data-action="delete-subject" data-id="${s.id}">🗑</button></td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* ----------------------------- Teachers (admin only) ----------------------------- */
+
+function renderTeachers(){
+  const action = `<button class="btn-primary" data-action="new-teacher">+ Add teacher</button>`;
+  return `
+    ${pageHeader("Staff","Teachers", action)}
+    <p class="empty-note" style="margin-bottom:16px;">Teachers sign in from the Teacher Portal with the email and password you set up for them below. They only see Grade Entry for the subjects you assign them below, plus Report Cards.</p>
+    <div class="card card-flush">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Assigned subjects</th><th></th></tr></thead>
+        <tbody>
+          ${DATA.teachers.length===0 ? `<tr><td colspan="4" style="text-align:center;color:#9a9184;padding:28px;">No teacher accounts yet.</td></tr>` :
+            DATA.teachers.map(t=>`
+            <tr>
+              <td style="font-weight:600;">${esc(t.name)}</td>
+              <td>${esc(t.email||"—")}</td>
+              <td>${(t.subjectIds||[]).map(id=>{
+                const sub = DATA.subjects.find(s=>s.id===id);
+                return sub ? `<span class="pill" style="margin-right:4px;">${esc(sub.code)}</span>` : "";
+              }).join("") || "—"}</td>
+              <td style="text-align:right;white-space:nowrap;">
+                <button class="icon-btn" data-action="edit-teacher" data-id="${t.id}">✎</button>
+                <button class="icon-btn danger" data-action="delete-teacher" data-id="${t.id}">🗑</button>
+              </td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function teacherModalHtml(teacher){
+  const isNew = !DATA.teachers.some(t=>t.id===teacher.id);
+  return `
+    <div class="form-row"><div class="form-label">Full name</div>
+      <input id="t-name" value="${esc(teacher.name)}" placeholder="e.g. Mr. Okello John" /></div>
+    <div class="form-row"><div class="form-label">Email</div>
+      <input id="t-email" type="email" value="${esc(teacher.email||"")}" placeholder="teacher@example.com" ${isNew ? "" : "disabled"} /></div>
+    ${isNew ? `
+    <div class="form-row"><div class="form-label">Temporary password (min 6 characters)</div>
+      <input id="t-password" type="password" placeholder="They can change it later" /></div>
+    ` : `<p style="font-size:12px;color:#6b6357;margin:-6px 0 10px;">Email can't be changed here. To reset their password, have them use "Forgot password?" on the Teacher Portal login screen.</p>`}
+    <div class="form-row"><div class="form-label">Subjects they teach</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="t-subjects">
+        ${DATA.subjects.map(sub=>{
+          const active = (teacher.subjectIds||[]).includes(sub.id);
+          return `<button type="button" class="subject-chip ${active?"active":""}" data-action="toggle-teacher-subject" data-sid="${sub.id}">${esc(sub.code)}</button>`;
+        }).join("")}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+      <button class="btn-secondary" data-action="close-modal">Cancel</button>
+      <button class="btn-primary" data-action="save-teacher">Save teacher</button>
+    </div>`;
+}
+
+/* ----------------------------- Grade entry ----------------------------- */
+
+function renderGrades(){
+  const f = UI.gradeFilter;
+  const isTeacher = SESSION.role === "teacher";
+  const t = currentTeacher();
+  const availableSubjects = isTeacher ? DATA.subjects.filter(s=>(t?.subjectIds||[]).includes(s.id)) : DATA.subjects;
+
+  if (isTeacher && availableSubjects.length === 0){
+    return pageHeader("Assessment","Grade Entry") + `<div class="card empty-note">You have no subjects assigned yet. Ask your admin to assign subjects to your account in the Teachers tab.</div>`;
+  }
+
+  const roster = DATA.students.filter(s => s.klass===f.klass && isActiveStudent(s) && (s.subjectIds||[]).includes(f.subjectId));
+  const subject = DATA.subjects.find(s=>s.id===f.subjectId);
+
+  const filterBar = `
+    <div class="card form-inline" style="margin-bottom:18px;">
+      <div class="form-row"><div class="form-label">Class</div>
+        <select id="gf-klass">${CLASSES.map(c=>`<option ${c===f.klass?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div class="form-row"><div class="form-label">Subject</div>
+        <select id="gf-subject">${availableSubjects.map(s=>`<option value="${s.id}" ${s.id===f.subjectId?"selected":""}>${esc(s.name)}</option>`).join("")}</select></div>
+      <div class="form-row"><div class="form-label">Term</div>
+        <select id="gf-term">${TERMS.map(t2=>`<option ${t2===f.term?"selected":""}>${t2}</option>`).join("")}</select></div>
+      <div class="form-row"><div class="form-label">Year</div>
+        <input id="gf-year" style="width:90px;" value="${esc(f.year)}" /></div>
+    </div>`;
+
+  let body;
+  if (!f.subjectId){
+    body = `<div class="card empty-note">Add a subject first (Subjects tab).</div>`;
+  } else if (roster.length===0){
+    body = `<div class="card empty-note">No ${esc(f.klass)} students are registered for ${esc(subject?.name||"")}. Assign the subject to students in the Students tab.</div>`;
+  } else {
+    body = `
+      <div class="card card-flush">
+        <table>
+          <thead><tr><th>Student</th><th style="width:110px;">Score (%)</th><th style="width:70px;">Grade</th><th>Teacher comment</th></tr></thead>
+          <tbody>
+            ${roster.map(s=>{
+              const g = DATA.grades[gradeKey(s.id, f.subjectId, f.term, f.year)] || {};
+              const gr = computeGrade(g.score, DATA.settings.gradeScale);
+              return `
+                <tr data-student-row="${s.id}">
+                  <td style="font-weight:600;">${esc(s.name)}</td>
+                  <td><input type="number" min="0" max="100" style="padding:6px 8px;" data-grade-score="${s.id}" value="${g.score ?? ""}" /></td>
+                  <td><span class="grade-badge" data-grade-badge="${s.id}">${gr ? `<span class="pill dark">${gr.grade}</span>` : "—"}</span></td>
+                  <td><input style="padding:6px 8px;" data-grade-comment="${s.id}" value="${esc(g.comment)}" placeholder="Optional remark" /></td>
+                </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+        <div style="padding:14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;">
+          <button class="btn-primary" data-action="save-grades">Save scores</button>
+        </div>
+      </div>`;
+  }
+
+  const gradeAction = f.subjectId ? `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" data-action="export-grades-excel">⬇ Export Excel</button>
+      <button class="btn-secondary" data-action="import-grades-excel">⬆ Import Excel</button>
+      <input type="file" id="import-grades-input" accept=".xlsx,.xls,.csv" style="display:none;" />
+    </div>` : "";
+
+  return pageHeader("Assessment","Grade Entry", gradeAction) + filterBar + body;
+}
+
+/* ----------------------------- Reports ----------------------------- */
+
+function renderReports(){
+  const f = UI.reportFilter;
+  const isParent = SESSION.role === "parent";
+  if (isParent) { f.studentId = SESSION.studentId; }
+  const student = DATA.students.find(s=>s.id===f.studentId);
+  const action = student ? `
+    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" data-action="export-report-jpg">⬇ Export JPG</button>
+      <button class="btn-secondary" data-action="export-report-pdf">⬇ Export PDF</button>
+      <button class="btn-primary" data-action="print-report">Print / Save as PDF</button>
+    </div>` : "";
+
+  const filterBar = `
+    <div class="card form-inline no-print" style="margin-bottom:20px;">
+      <div class="form-row" style="min-width:220px;"><div class="form-label">Student</div>
+        ${isParent
+          ? `<div style="padding:9px 10px;background:var(--paper-dim);border-radius:7px;font-size:13.5px;font-weight:600;">${esc(student?.name||"")}${student?` (${esc(student.klass)})`:""}</div>`
+          : `<select id="rf-student">
+              ${DATA.students.length===0 ? `<option value="">No students yet</option>` : ""}
+              ${DATA.students.map(s=>`<option value="${s.id}" ${s.id===f.studentId?"selected":""}>${esc(s.name)} (${esc(s.klass)}${isActiveStudent(s)?"":" · Graduated"})</option>`).join("")}
+            </select>`}
+      </div>
+      <div class="form-row"><div class="form-label">Term</div>
+        <select id="rf-term">${TERMS.map(t=>`<option ${t===f.term?"selected":""}>${t}</option>`).join("")}</select></div>
+      <div class="form-row"><div class="form-label">Year</div>
+        <input id="rf-year" style="width:90px;" value="${esc(f.year)}" /></div>
+    </div>`;
+
+  if (!student){
+    return pageHeader("Output","Report Cards", action) + filterBar + `<div class="card empty-note">Add a student to generate a report card.</div>`;
+  }
+
+  const rows = (student.subjectIds||[]).map(sid=>{
+    const subject = DATA.subjects.find(s=>s.id===sid);
+    if (!subject) return null;
+    const g = DATA.grades[gradeKey(student.id, sid, f.term, f.year)];
+    const grade = g ? computeGrade(g.score, DATA.settings.gradeScale) : null;
+    return { subject, score: g?.score, comment: g?.comment, grade };
+  }).filter(Boolean);
+
+  const scored = rows.filter(r=>r.grade);
+  const totalPoints = scored.reduce((sum,r)=>sum+r.grade.points,0);
+  const avgScore = scored.length ? (scored.reduce((sum,r)=>sum+Number(r.score),0)/scored.length).toFixed(1) : null;
+
+  const remarks = DATA.remarks[remarkKey(student.id, f.term, f.year)] || { classTeacher:"", headTeacher:"" };
+  const initials = (DATA.settings.schoolName||"S").trim().slice(0,2).toUpperCase();
+
+  const reportHtml = `
+    <div class="report-card">
+      <div class="report-head">
+        <div>
+          <div class="report-school">${esc(DATA.settings.schoolName)}</div>
+          ${DATA.settings.schoolMotto ? `<div class="report-motto">${esc(DATA.settings.schoolMotto)}</div>` : ""}
+          <div class="report-sub">Advanced Level Report Card — ${esc(f.term)}, ${esc(f.year)}</div>
+        </div>
+        <div class="report-seal">${sealInner(initials)}</div>
+      </div>
+      <div style="display:flex;gap:20px;align-items:flex-start;">
+        <div class="report-meta" style="flex:1;margin-bottom:0;">
+          <div><b>Name:</b> ${esc(student.name)}</div>
+          <div><b>Admission No.:</b> ${esc(student.admNo)||"—"}</div>
+          <div><b>Class:</b> ${esc(student.klass)}${student.stream?` — ${esc(student.stream)}`:""}</div>
+          <div><b>Subject combination:</b> ${(student.subjectIds||[]).length} subjects</div>
+        </div>
+        ${student.photoDataUrl ? `<div style="width:76px;height:96px;border-radius:6px;overflow:hidden;border:1px solid var(--line);flex-shrink:0;">
+            <img src="${student.photoDataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" alt="${esc(student.name)}" />
+          </div>` : ""}
+      </div>
+      <div style="margin-bottom:22px;"></div>
+      <table class="report-table">
+        <thead><tr><th>Subject</th><th>Score</th><th>Grade</th><th>Points</th><th>Comment</th></tr></thead>
+        <tbody>
+          ${rows.length===0 ? `<tr><td colspan="5" style="text-align:center;color:#9a9184;font-family:var(--font-body);">No subjects assigned to this student.</td></tr>` :
+            rows.map(r=>`
+              <tr>
+                <td class="name-cell">${esc(r.subject.name)}</td>
+                <td>${r.score!==undefined && r.score!=="" ? esc(r.score) : "—"}</td>
+                <td>${r.grade ? esc(r.grade.grade) : "—"}</td>
+                <td>${r.grade ? esc(r.grade.points) : "—"}</td>
+                <td style="font-family:var(--font-body);">${esc(r.comment)||""}</td>
+              </tr>`).join("")}
+        </tbody>
+      </table>
+      <div class="report-totals">
+        <div><b>Total points:</b> ${totalPoints}</div>
+        ${avgScore ? `<div><b>Average score:</b> ${avgScore}%</div>` : ""}
+      </div>
+      ${isParent ? "" : `
+      <div class="no-print" style="display:grid;gap:10px;margin-bottom:10px;">
+        <div class="form-row"><div class="form-label">Class teacher's comment</div>
+          <textarea id="remark-class" style="min-height:54px;">${esc(remarks.classTeacher)}</textarea></div>
+        <div class="form-row"><div class="form-label">Head teacher's comment</div>
+          <textarea id="remark-head" style="min-height:54px;">${esc(remarks.headTeacher)}</textarea></div>
+      </div>`}
+      <div style="font-size:13.5px;margin-top:18px;">
+        <div style="margin-bottom:12px;"><b>Class teacher's comment:</b> <span id="remark-class-display">${esc(remarks.classTeacher)||"—"}</span></div>
+        <div style="margin-bottom:24px;"><b>Head teacher's comment:</b> <span id="remark-head-display">${esc(remarks.headTeacher)||"—"}</span></div>
+        <div class="sign-row">
+          <div class="sign-line">Class teacher's signature</div>
+          <div class="sign-line" style="text-align:right;">Head teacher's signature</div>
+        </div>
+      </div>
+    </div>`;
+
+  return pageHeader("Output","Report Cards", action) + filterBar + reportHtml;
+}
+
+/* ----------------------------- Settings (admin only) ----------------------------- */
+
+function renderSettings(){
+  const s = DATA.settings;
+  const s5Count = DATA.students.filter(st => st.klass==="S5" && isActiveStudent(st)).length;
+  const s6Count = DATA.students.filter(st => st.klass==="S6" && isActiveStudent(st)).length;
+  const graduatedCount = DATA.students.filter(st => !isActiveStudent(st)).length;
+  const nextYear = String(Number(s.currentYear) + 1 || "");
+  return `
+    ${pageHeader("Configuration","Settings")}
+    <div class="card" style="margin-bottom:18px;">
+      <h3 class="section-title">School details</h3>
+      <div class="form-inline">
+        <div class="form-row" style="flex:1;min-width:220px;"><div class="form-label">School name</div>
+          <input id="s-name" value="${esc(s.schoolName)}" /></div>
+        <div class="form-row" style="flex:1;min-width:220px;"><div class="form-label">Motto (optional)</div>
+          <input id="s-motto" value="${esc(s.schoolMotto)}" /></div>
+      </div>
+      <div class="form-inline">
+        <div class="form-row"><div class="form-label">Current term</div>
+          <select id="s-term">${TERMS.map(t=>`<option ${t===s.currentTerm?"selected":""}>${t}</option>`).join("")}</select></div>
+        <div class="form-row"><div class="form-label">Current year</div>
+          <input id="s-year" style="width:100px;" value="${esc(s.currentYear)}" /></div>
+      </div>
+      <div class="form-row" style="display:flex;gap:14px;align-items:center;margin-top:6px;">
+        <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--paper-dim);border:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+          ${s.logoDataUrl ? `<img class="seal-img" src="${s.logoDataUrl}" alt="School logo" />` : `<span style="font-size:10px;color:#9a9184;">No logo</span>`}
+        </div>
+        <div>
+          <div class="form-label" style="margin-bottom:6px;">School logo</div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn-secondary" data-action="upload-logo">Upload logo</button>
+            ${s.logoDataUrl ? `<button type="button" class="btn-secondary" data-action="remove-logo">Remove</button>` : ""}
+          </div>
+          <input type="file" id="s-logo-input" accept="image/*" style="display:none;" />
+          <p style="font-size:11px;color:#6b6357;margin:6px 0 0;">Replaces the school initials on the login screen, sidebar, and report cards.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <h3 class="section-title">Year-End Promotion</h3>
+      <p style="font-size:13px;color:#6b6357;margin-top:-8px;margin-bottom:14px;">
+        Run this once a year, after final results for ${esc(s.currentYear)} are recorded. It moves S5 students up to S6, marks current S6 students as graduated, and advances the school year. All past grades and report cards stay exactly as they are.
+      </p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;">
+        <div class="stat-card" style="flex:1;min-width:140px;"><div class="stat-value">${s5Count}</div><div class="stat-label">Active S5 → will move to S6</div></div>
+        <div class="stat-card" style="flex:1;min-width:140px;"><div class="stat-value">${s6Count}</div><div class="stat-label">Active S6 → will graduate</div></div>
+        <div class="stat-card" style="flex:1;min-width:140px;"><div class="stat-value">${graduatedCount}</div><div class="stat-label">Already graduated</div></div>
+      </div>
+      <button class="btn-primary" data-action="run-promotion">Promote students → start ${esc(nextYear)}</button>
+      ${s.lastPromotionDate ? `<p style="font-size:12px;color:#6b6357;margin:10px 0 0;">Last run: ${esc(new Date(s.lastPromotionDate).toLocaleDateString())}</p>` : ""}
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <h3 class="section-title">Admin Account</h3>
+      <p style="font-size:13px;color:#6b6357;margin-top:-8px;margin-bottom:0;">Signed in as <strong>${esc(s.adminEmail||"—")}</strong>. To change the password, sign out and use "Forgot password?" on the Admin Portal login screen.</p>
+    </div>
+    <div class="card" style="margin-bottom:18px;">
+      <h3 class="section-title">Grading scale</h3>
+      <p style="font-size:13px;color:#6b6357;margin-top:-8px;margin-bottom:14px;">
+        Set the letter grade, the minimum score (%) it requires, and the points it earns. Adjust to match your official UNEB A-Level scale.</p>
+      <div style="display:grid;gap:8px;" id="grade-scale-rows">
+        ${s.gradeScale.map((band,i)=>`
+          <div style="display:flex;gap:8px;align-items:center;" data-band-row="${i}">
+            <input style="width:60px;" data-band-field="grade" data-band-i="${i}" value="${esc(band.grade)}" placeholder="A" />
+            <span style="font-size:13px;color:#6b6357;">min score ≥</span>
+            <input type="number" style="width:80px;" data-band-field="min" data-band-i="${i}" value="${band.min}" />
+            <span style="font-size:13px;color:#6b6357;">points</span>
+            <input type="number" style="width:70px;" data-band-field="points" data-band-i="${i}" value="${band.points}" />
+            <button class="icon-btn danger" data-action="remove-band" data-i="${i}">🗑</button>
+          </div>`).join("")}
+      </div>
+      <button class="btn-secondary" data-action="add-band" style="margin-top:10px;">+ Add band</button>
+    </div>
+    <button class="btn-primary" data-action="save-settings">Save settings</button>`;
+}
+
+/* ----------------------------- Modal ----------------------------- */
+
+function renderModal(){
+  if (UI.modal === "student"){
+    const isNew = !DATA.students.some(s=>s.id===UI.editingStudent.id);
+    return `
+      <div class="modal-overlay" data-action="close-modal-overlay">
+        <div class="modal" data-stop-close>
+          <div class="modal-head">
+            <h3 class="section-title" style="margin:0;">${isNew?"Add student":"Edit student"}</h3>
+            <button class="modal-close" data-action="close-modal">×</button>
+          </div>
+          ${studentModalHtml(UI.editingStudent)}
+        </div>
+      </div>`;
+  }
+  if (UI.modal === "teacher"){
+    const isNew = !DATA.teachers.some(t=>t.id===UI.editingTeacher.id);
+    return `
+      <div class="modal-overlay" data-action="close-modal-overlay">
+        <div class="modal" data-stop-close>
+          <div class="modal-head">
+            <h3 class="section-title" style="margin:0;">${isNew?"Add teacher":"Edit teacher"}</h3>
+            <button class="modal-close" data-action="close-modal">×</button>
+          </div>
+          ${teacherModalHtml(UI.editingTeacher)}
+        </div>
+      </div>`;
+  }
+  return "";
+}
+
+/* ----------------------------- Event handling ----------------------------- */
+
+function attachGlobalHandlers(){
+  document.body.onclick = (e) => {
+    const el = e.target.closest("[data-action]");
+    if (!el) return;
+    const action = el.dataset.action;
+
+    // ---- Login flow ----
+    if (action === "choose-role") {
+      SESSION.error = "";
+      const role = el.dataset.role;
+      if (role === "admin") {
+        SESSION.step = DATA.settings.adminEmail ? "admin-login" : "admin-setup";
+      } else if (role === "parent") {
+        SESSION.step = "parent-lookup";
+      } else {
+        SESSION.step = "teacher-login";
+      }
+      render();
+      return;
+    }
+    if (action === "back-to-role-choice") { SESSION = { role:null, teacherId:null, studentId:null, step:"choose", selectedTeacherId:null, selectedStudentId:null, error:"" }; render(); return; }
+    if (action === "submit-admin-login") {
+      const email = (document.getElementById("admin-email-input").value || "").trim();
+      const pass = document.getElementById("pin-input").value;
+      if (!email || !pass) { SESSION.error = "Enter your email and password."; render(); return; }
+      SESSION.error = "";
+      fbAuth.signInWithEmailAndPassword(email, pass).catch(()=>{
+        SESSION.error = "Incorrect email or password.";
+        render();
+      });
+      return;
+    }
+    if (action === "submit-admin-setup") {
+      const email = (document.getElementById("setup-email").value || "").trim();
+      const p1 = document.getElementById("setup-pass1").value;
+      const p2 = document.getElementById("setup-pass2").value;
+      if (!email) { SESSION.error = "Enter an email address."; render(); return; }
+      if (p1.length < 6) { SESSION.error = "Password must be at least 6 characters."; render(); return; }
+      if (p1 !== p2) { SESSION.error = "Passwords don't match. Try again."; render(); return; }
+      fbAuth.createUserWithEmailAndPassword(email, p1).then((cred)=>{
+        DATA.settings.adminUid = cred.user.uid;
+        DATA.settings.adminEmail = email;
+        persist();
+      }).catch(err=>{
+        SESSION.error = err.message || "Could not create the admin account.";
+        render();
+      });
+      return;
+    }
+    if (action === "submit-teacher-login") {
+      const email = (document.getElementById("teacher-email-input").value || "").trim();
+      const pass = document.getElementById("pin-input").value;
+      if (!email || !pass) { SESSION.error = "Enter your email and password."; render(); return; }
+      SESSION.error = "";
+      fbAuth.signInWithEmailAndPassword(email, pass).catch(()=>{
+        SESSION.error = "Incorrect email or password.";
+        render();
+      });
+      return;
+    }
+    if (action === "forgot-password") {
+      const field = document.getElementById(el.dataset.field);
+      const email = (field?.value || "").trim();
+      if (!email) { SESSION.error = "Enter your email above first, then tap \"Forgot password?\" again."; render(); return; }
+      fbAuth.sendPasswordResetEmail(email).then(()=>{
+        alert(`Password reset email sent to ${email}.`);
+      }).catch(err=>{
+        SESSION.error = err.message || "Could not send a reset email.";
+        render();
+      });
+      return;
+    }
+    if (action === "submit-parent-lookup") {
+      const val = (document.getElementById("parent-admno-input").value || "").trim();
+      if (!val) { SESSION.error = "Enter an admission number."; render(); return; }
+      const student = DATA.students.find(s => (s.admNo||"").trim().toLowerCase() === val.toLowerCase());
+      if (!student) { SESSION.error = "No student found with that admission number. Check with the school office."; render(); return; }
+      if (student.parentPin) {
+        SESSION.selectedStudentId = student.id; SESSION.step = "parent-pin"; SESSION.error = "";
+      } else {
+        SESSION.role = "parent"; SESSION.studentId = student.id; SESSION.step = "done"; SESSION.error = "";
+        UI.tab = "dashboard";
+        UI.reportFilter = { studentId: student.id, term: DATA.settings.currentTerm, year: DATA.settings.currentYear };
+      }
+      render();
+      return;
+    }
+    if (action === "submit-parent-pin") {
+      const val = document.getElementById("pin-input").value;
+      const student = DATA.students.find(s=>s.id===SESSION.selectedStudentId);
+      if (student && val === student.parentPin) {
+        SESSION.role = "parent"; SESSION.studentId = student.id; SESSION.step = "done"; SESSION.error = "";
+        UI.tab = "dashboard";
+        UI.reportFilter = { studentId: student.id, term: DATA.settings.currentTerm, year: DATA.settings.currentYear };
+      } else {
+        SESSION.error = "Incorrect PIN. Try again.";
+      }
+      render();
+      return;
+    }
+    if (action === "logout") { logout(); return; }
+
+    // ---- Main app ----
+    if (action === "set-tab") { setTab(el.dataset.tab); return; }
+    if (action === "new-student") { UI.modal="student"; UI.editingStudent = { id: uid(), name:"", admNo:"", klass:CLASSES[0], stream:"", guardianContact:"", parentPin:"", photoDataUrl:"", subjectIds:[] }; render(); return; }
+    if (action === "edit-student") { UI.modal="student"; UI.editingStudent = { ...DATA.students.find(s=>s.id===el.dataset.id) }; render(); return; }
+    if (action === "delete-student") {
+      if (confirm("Remove this student? Their recorded grades will be kept but unlinked.")){
+        DATA.students = DATA.students.filter(s=>s.id!==el.dataset.id);
+        persist(); render();
+      }
+      return;
+    }
+    if (action === "new-teacher") { UI.modal="teacher"; UI.editingTeacher = { id: uid(), name:"", email:"", uid:"", subjectIds:[] }; render(); return; }
+    if (action === "edit-teacher") { UI.modal="teacher"; UI.editingTeacher = { ...DATA.teachers.find(t=>t.id===el.dataset.id) }; render(); return; }
+    if (action === "delete-teacher") {
+      if (confirm("Remove this teacher account? They'll immediately lose access here. (Their Firebase sign-in still exists — delete it from the Firebase console too if you want it fully gone.)")){
+        DATA.teachers = DATA.teachers.filter(t=>t.id!==el.dataset.id);
+        persist(); render();
+      }
+      return;
+    }
+    if (action === "close-modal" || action === "close-modal-overlay") {
+      if (action==="close-modal-overlay" && e.target.closest("[data-stop-close]")) return;
+      UI.modal = null; UI.editingStudent = null; UI.editingTeacher = null; render(); return;
+    }
+    if (action === "toggle-subject") {
+      const sid = el.dataset.sid;
+      const set = new Set(UI.editingStudent.subjectIds||[]);
+      set.has(sid) ? set.delete(sid) : set.add(sid);
+      UI.editingStudent.subjectIds = [...set];
+      el.classList.toggle("active");
+      return;
+    }
+    if (action === "toggle-teacher-subject") {
+      const sid = el.dataset.sid;
+      const set = new Set(UI.editingTeacher.subjectIds||[]);
+      set.has(sid) ? set.delete(sid) : set.add(sid);
+      UI.editingTeacher.subjectIds = [...set];
+      el.classList.toggle("active");
+      return;
+    }
+    if (action === "save-student") {
+      const name = document.getElementById("f-name").value.trim();
+      if (!name) return;
+      UI.editingStudent.name = name;
+      UI.editingStudent.admNo = document.getElementById("f-adm").value.trim();
+      UI.editingStudent.klass = document.getElementById("f-klass").value;
+      UI.editingStudent.stream = document.getElementById("f-stream").value.trim();
+      UI.editingStudent.guardianContact = document.getElementById("f-guardian").value.trim();
+      UI.editingStudent.parentPin = document.getElementById("f-parentpin").value.trim();
+      const exists = DATA.students.some(s=>s.id===UI.editingStudent.id);
+      DATA.students = exists ? DATA.students.map(s=>s.id===UI.editingStudent.id?UI.editingStudent:s) : [...DATA.students, UI.editingStudent];
+      UI.modal = null; UI.editingStudent = null;
+      persist(); render();
+      return;
+    }
+    if (action === "save-teacher") {
+      const name = document.getElementById("t-name").value.trim();
+      if (!name) return;
+      const exists = DATA.teachers.some(t=>t.id===UI.editingTeacher.id);
+      UI.editingTeacher.name = name;
+      if (exists){
+        DATA.teachers = DATA.teachers.map(t=>t.id===UI.editingTeacher.id ? { ...t, name: UI.editingTeacher.name, subjectIds: UI.editingTeacher.subjectIds } : t);
+        UI.modal = null; UI.editingTeacher = null;
+        persist(); render();
+        return;
+      }
+      const email = document.getElementById("t-email").value.trim();
+      const password = document.getElementById("t-password").value;
+      if (!email) { alert("Enter an email address for this teacher."); return; }
+      if (!password || password.length < 6) { alert("Choose a temporary password of at least 6 characters."); return; }
+      fbSecondaryAuth.createUserWithEmailAndPassword(email, password).then(async (cred)=>{
+        UI.editingTeacher.email = email;
+        UI.editingTeacher.uid = cred.user.uid;
+        await fbSecondaryAuth.signOut();
+        DATA.teachers = [...DATA.teachers, UI.editingTeacher];
+        UI.modal = null; UI.editingTeacher = null;
+        persist(); render();
+      }).catch(err=>{
+        alert("Could not create that teacher's account: " + (err.message || err));
+      });
+      return;
+    }
+    if (action === "add-subject") {
+      const name = document.getElementById("new-subject-name").value.trim();
+      const code = document.getElementById("new-subject-code").value.trim();
+      if (!name || !code) return;
+      DATA.subjects = [...DATA.subjects, { id: uid(), name, code: code.toUpperCase() }];
+      persist(); render();
+      return;
+    }
+    if (action === "delete-subject") {
+      if (confirm("Remove this subject? Recorded scores for it will be kept but hidden.")){
+        DATA.subjects = DATA.subjects.filter(s=>s.id!==el.dataset.id);
+        persist(); render();
+      }
+      return;
+    }
+    if (action === "save-grades") {
+      const f = UI.gradeFilter;
+      const roster = DATA.students.filter(s => s.klass===f.klass && isActiveStudent(s) && (s.subjectIds||[]).includes(f.subjectId));
+      roster.forEach(s=>{
+        const scoreEl = document.querySelector(`[data-grade-score="${s.id}"]`);
+        const commentEl = document.querySelector(`[data-grade-comment="${s.id}"]`);
+        DATA.grades[gradeKey(s.id, f.subjectId, f.term, f.year)] = { score: scoreEl.value, comment: commentEl.value };
+      });
+      persist(); render();
+      return;
+    }
+    if (action === "print-report") { window.print(); return; }
+    if (action === "export-report-pdf") { exportReportAs("pdf"); return; }
+    if (action === "export-report-jpg") { exportReportAs("jpg"); return; }
+    if (action === "export-students-excel") { exportStudentsToExcel(); return; }
+    if (action === "import-students-excel") { document.getElementById("import-students-input")?.click(); return; }
+    if (action === "export-grades-excel") { exportGradesToExcel(); return; }
+    if (action === "import-grades-excel") { document.getElementById("import-grades-input")?.click(); return; }
+    if (action === "add-band") {
+      DATA.settings.gradeScale = [...DATA.settings.gradeScale, { grade:"", min:0, points:0 }];
+      render();
+      return;
+    }
+    if (action === "remove-band") {
+      const i = Number(el.dataset.i);
+      DATA.settings.gradeScale = DATA.settings.gradeScale.filter((_,idx)=>idx!==i);
+      render();
+      return;
+    }
+    if (action === "save-settings") { saveSettingsFromForm(); return; }
+    if (action === "run-promotion") { runPromotion(); return; }
+    if (action === "upload-logo") { document.getElementById("s-logo-input")?.click(); return; }
+    if (action === "remove-logo") { DATA.settings.logoDataUrl = ""; persist(); render(); return; }
+    if (action === "upload-student-photo") { document.getElementById("student-photo-input")?.click(); return; }
+    if (action === "remove-student-photo") { if (UI.editingStudent) UI.editingStudent.photoDataUrl = ""; render(); return; }
+  };
+
+  // Live grade-badge update while typing scores
+  document.body.oninput = (e) => {
+    if (e.target.matches("[data-grade-score]")) {
+      const sid = e.target.dataset.gradeScore;
+      const gr = computeGrade(e.target.value, DATA.settings.gradeScale);
+      const badge = document.querySelector(`[data-grade-badge="${sid}"]`);
+      if (badge) badge.innerHTML = gr ? `<span class="pill dark">${esc(gr.grade)}</span>` : "—";
+    }
+    if (e.target.id === "student-search") {
+      UI.studentQuery = e.target.value;
+      renderStudentsTableOnly();
+    }
+    if (e.target.id === "remark-class" || e.target.id === "remark-head") {
+      const disp = document.getElementById(e.target.id + "-display");
+      if (disp) disp.textContent = e.target.value || "—";
+    }
+  };
+
+  document.body.onchange = (e) => {
+    if (e.target.id === "s-logo-input") {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      resizeImageToDataUrl(file, 240, 0.85).then(dataUrl => {
+        DATA.settings.logoDataUrl = dataUrl;
+        persist(); render();
+      }).catch(err => { console.error(err); alert("Could not load that image. Please try a different file."); });
+      return;
+    }
+    if (e.target.id === "student-photo-input") {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file || !UI.editingStudent) return;
+      resizeImageToDataUrl(file, 220, 0.82).then(dataUrl => {
+        UI.editingStudent.photoDataUrl = dataUrl;
+        render();
+      }).catch(err => { console.error(err); alert("Could not load that image. Please try a different file."); });
+      return;
+    }
+    if (e.target.id === "student-status-filter") {
+      UI.studentStatusFilter = e.target.value;
+      render();
+      return;
+    }
+    if (e.target.id === "import-students-input") {
+      const file = e.target.files[0];
+      if (file) importStudentsFromExcel(file);
+      e.target.value = "";
+      return;
+    }
+    if (e.target.id === "import-grades-input") {
+      const file = e.target.files[0];
+      if (file) importGradesFromExcel(file);
+      e.target.value = "";
+      return;
+    }
+    if (["gf-klass","gf-subject","gf-term","gf-year"].includes(e.target.id)) {
+      UI.gradeFilter = {
+        klass: document.getElementById("gf-klass").value,
+        subjectId: document.getElementById("gf-subject").value,
+        term: document.getElementById("gf-term").value,
+        year: document.getElementById("gf-year").value,
+      };
+      render();
+    }
+    if (["rf-student","rf-term","rf-year"].includes(e.target.id)) {
+      UI.reportFilter = {
+        studentId: document.getElementById("rf-student").value,
+        term: document.getElementById("rf-term").value,
+        year: document.getElementById("rf-year").value,
+      };
+      render();
+    }
+  };
+
+  document.body.addEventListener("focusout", (e) => {
+    if (e.target.id === "remark-class" || e.target.id === "remark-head") {
+      saveRemarkFromForm();
+    }
+  });
+}
+
+function saveRemarkFromForm(){
+  const f = UI.reportFilter;
+  const student = DATA.students.find(s=>s.id===f.studentId);
+  if (!student) return;
+  const classTeacher = document.getElementById("remark-class")?.value || "";
+  const headTeacher = document.getElementById("remark-head")?.value || "";
+  DATA.remarks[remarkKey(student.id, f.term, f.year)] = { classTeacher, headTeacher };
+  persist();
+}
+
+function saveSettingsFromForm(){
+  const s = DATA.settings;
+  s.schoolName = document.getElementById("s-name").value.trim() || "Your School Name";
+  s.schoolMotto = document.getElementById("s-motto").value.trim();
+  s.currentTerm = document.getElementById("s-term").value;
+  s.currentYear = document.getElementById("s-year").value.trim();
+  document.querySelectorAll("[data-band-row]").forEach(row=>{
+    const i = Number(row.dataset.bandRow);
+    const grade = row.querySelector('[data-band-field="grade"]').value;
+    const min = Number(row.querySelector('[data-band-field="min"]').value);
+    const points = Number(row.querySelector('[data-band-field="points"]').value);
+    s.gradeScale[i] = { grade, min, points };
+  });
+  persist(); render();
+}
+
+function runPromotion(){
+  const year = DATA.settings.currentYear;
+  const nextYear = String(Number(year) + 1 || "");
+  const s6 = DATA.students.filter(s => s.klass === "S6" && isActiveStudent(s));
+  const s5 = DATA.students.filter(s => s.klass === "S5" && isActiveStudent(s));
+  if (s5.length === 0 && s6.length === 0){
+    alert("There are no active students to promote yet.");
+    return;
+  }
+  const msg = `This will:\n\n`
+    + `• Move ${s5.length} active S5 student(s) up to S6\n`
+    + `• Mark ${s6.length} active S6 student(s) as graduated (Class of ${year})\n`
+    + `• Advance the current year from ${year} to ${nextYear}, and reset the term to ${TERMS[0]}\n\n`
+    + `All past grades and report cards are kept, and graduated students stay in your records. Continue?`;
+  if (!confirm(msg)) return;
+
+  DATA.students.forEach(s=>{
+    if (!isActiveStudent(s)) return;
+    if (s.klass === "S6"){ s.status = "graduated"; s.graduatedYear = year; }
+    else if (s.klass === "S5"){ s.klass = "S6"; }
+  });
+  DATA.settings.currentYear = nextYear;
+  DATA.settings.currentTerm = TERMS[0];
+  DATA.settings.lastPromotionDate = new Date().toISOString();
+  persist(); render();
+  alert(`Promotion complete. Now in ${TERMS[0]}, ${nextYear}.`);
+}
+
+function renderStudentsTableOnly(){
+  // lightweight partial refresh so the search box keeps focus while typing
+  const main = document.querySelector("main");
+  if (!main) return;
+  main.innerHTML = renderStudents();
+  const input = document.getElementById("student-search");
+  if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+}
+
+// Startup is driven by the fbAuth.onAuthStateChanged listener above —
+// no explicit init() call needed.
+</script>
+</body>
+</html>
